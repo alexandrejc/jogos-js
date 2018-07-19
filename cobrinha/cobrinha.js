@@ -1,22 +1,63 @@
 var Jogo = {
-  countCubos: "",
-  t: 1,
-  direcaoX: 0,
-  direcaoY: 1,
-  z: 1,
-  n: [],
-  tamanho: 2,
-  cubo: Math.floor(Math.random() * 638 + 1),
-  tela: function () {
-    'use strict';
-    for (var a = 1; a < 639; a++) {
-      this.countCubos  += "<div class='cubos' id="+ a +">&nbsp;</div>";
-    }
-    return this.countCubos;
-  },
-    principal: function (y, x) {
-        while (this.t <= 3600) {
-            setTimeout(function() {
+	t: 0,                  // controla a velocidade com setTimeOut
+	direcaoX: 0,           //Controla a dereção direita e esquerda da seta da cobrianha
+	direcaoY: 1,           //Conrola a direção para cima e para baixo da cobrinha
+	countCubos: "",        //Faz os cubos ou quadrados do espaço que a cobinha percorre
+    corpo: [14, 14, 43],       //Tamanno da cobrinha fixo
+    on: false,             //Faz a cobrinha crescer se true
+    cubo: Math.floor(Math.random() * 638 + 1), //Nuemro aleatorio do cubo que acobrinha vai perseguir
+    //Cria a tela de jogo
+    tela: function () {
+    	for (var a = 1; a < 639; a++) {
+      		this.countCubos  += "<div class='cubos' id="+ a +">&nbsp;</div>";
+    	}
+    	return this.countCubos;
+	},
+    //Faz toda a cobrinha com array fixo
+	executarCabeca: function(x, y) {
+        //coordenada do id para pintar no array
+		var coordenadas;
+		coordenadas = (((29 * y) + (x - 28)) -1);    
+        //Controla o for i para  o valor 1;  evita erros de bug
+        var t = 1;
+        // Faz os numeros correrem o array de 0 a this.corpo.length 
+        for (var i = 0; i <= Jogo.corpo.length -1; i++) {
+        if (i == 0) final = Jogo.corpo[i];
+        Jogo.corpo[i] = Jogo.corpo[t];
+        if (i == Jogo.corpo.length -1) Jogo.corpo[Jogo.corpo.length - 1] = coordenadas;
+        t++;
+        }
+        t = 1;     
+                      
+        //Faz a cobrinha aarecer na tela
+        for (var n = 0; n <= Jogo.corpo.length - 1; n++) {
+            if (n == 0) {
+                document.getElementById(this.corpo[n]).style.backgroundColor = "#EEEEEE";
+            } else {
+            document.getElementById(this.corpo[n]).style.backgroundColor = "#000000";
+         }} 
+	},
+    //Aumenta em 1 o tamanho da cobrinha queando  a this.cubo.length - 1 for igual a this.cubo
+	crescimento: function () {
+        var per = document.getElementById(this.cubo).style;
+        if (this.cubo === this.corpo[this.corpo.length -1]) {
+           this.on = true;
+           this.cubo = Math.floor(Math.random() * 638 + 1);
+           if (this.on == true) {
+            Jogo.corpo.unshift(0);
+            this.on = false;  
+            }
+        }
+        per.backgroundColor = "#2F2f4F";
+        return per;
+    },
+     //Corpo principal que faz a cobrinha andar e aparecer
+	 principal: function (x, y) {
+            var tempo = setInterval(function() {
+            	y = y + Jogo.direcaoY;  //Jogo.direcaoY = 0 ou 1 modifica a direcao da cobirnha
+                x = x + Jogo.direcaoX;  //Jogo.direcaoX = 0 ou 1 modifica a direcao da cobrinah
+                //====================================
+                //Faz a cobrinha não bater na parede
                 if(x < 1) {
                   x = 29;
                 }
@@ -29,50 +70,26 @@ var Jogo = {
                 if(y > 22) {
                   y = 1;
                 }
-                Jogo.cobrinha(((29 * y) + (x - 28)) -1);
+                //====================================
                 Jogo.crescimento();
-                y = y + Jogo.direcaoY;
-                x = x + Jogo.direcaoX;
-             }, (this.t * 600));
-             this.t++;
-         }
+                //Controla o tamanho da cobrinha
+                Jogo.executarCabeca(x, y); //Controla a cobirnha
+                              
+               }, 1000);  
+              Jogo.t++;    
     },
-    crescimento: function () {
-        var per = document.getElementById(this.cubo).style;
-        if (this.cubo === this.n[0]) {
-           this.tamanho++;
-           this.cubo = Math.floor(Math.random() * 638 + 1);
-        }
-        per.backgroundColor = "#000";
-        return per;
-    },
-    cobrinha: function (l, c) {
-        if(this.z <= this.tamanho) {
-            this.n.unshift(l);
-
-        }
-        for (var x = 0; x < this.tamanho; x++) {
-            if(x === 0) {
-                document.getElementById(this.n[this.tamanho]).style.backgroundColor = "#EEEEEE";
-            }
-            document.getElementById(this.n[x]).style.backgroundColor = "#2F2F4F";
-        }
-        this.z++;
-        if(this.z > this.tamanho) {
-            for (var i = this.tamanho; i <= 0; i--) {
-                this.n[i] = this.n[i + 1];
-            }
-            //document.getElementById(this.n[this.z - 5]).style.backgroundColor = "#EEE";
-            if(this.z === (this.tamanho + 1)) {
-                this.z = 0;
-            }
-        }
-    },
-    comecar: function () {
-      document.getElementById("comecar").style.display = "none";
-      Jogo.principal(1, 14);
-    }
 };
+//Quando o arquivo for carregado
+window.onload = function() {
+   document.getElementById("conteiner").innerHTML = Jogo.tela();
+   document.getElementById("comecar").addEventListener("click", function() {
+   //Clicar para começar o jogo;
+        document.getElementById("comecar").style.display = "none";
+      Jogo.principal(14, 2);
+    }, false);
+};
+//Evento que controla as setas do teclado ====KeyDown====
+//Observação: As letras W, D, X, A também são setas
 document.addEventListener('keydown', function (seta) {
     var evento = seta.keyCode;
     switch(evento) {
@@ -110,3 +127,4 @@ document.addEventListener('keydown', function (seta) {
             break;
    }
  }, false);
+    
